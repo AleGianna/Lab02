@@ -1,11 +1,42 @@
+import csv
+from csv import reader
+
 def carica_da_file(file_path):
     """Carica le foto dal file, creando un nuovo anno ogni volta che compare per la prima volta"""
-    # TODO
-
+    album = []
+    f=open(file_path, "r")
+    file=csv.reader(f)
+    inte = next(file)
+    for row in file:
+        diz={}
+        diz[inte[0]] = row[0]
+        diz[inte[1]] = row[1]
+        diz[inte[2]] = row[2]
+        diz[inte[3]] = int(row[3])
+        diz[inte[4]] = int(row[4])
+        album.append(diz)
+    f.close()
+    return album
 
 def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
     """Aggiunge una foto all'album, creando l'anno al volo se non è ancora presente"""
     # TODO
+    f=open(file_path, "r")
+    file=csv.reader(f)
+    inte1 = next(file)
+    newPhoto = {
+        inte1 [0] : codice,
+        inte1 [1] : titolo,
+        inte1 [2] : autore,
+        inte1 [3] : mese,
+        inte1 [4] : anno
+    }
+    album.append(newPhoto)
+    f_writer = open(file_path, mode="a", newline="")
+    writer = csv.writer(f_writer)
+    writer.writerow([codice, titolo, autore, mese, anno])
+    f_writer.close()
+    return True
 
 
 def cerca_foto(album, codice):
