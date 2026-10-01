@@ -2,7 +2,7 @@ import csv
 from csv import reader
 
 def carica_da_file(file_path):
-    """Carica le foto dal file, creando un nuovo anno ogni volta che compare per la prima volta"""
+    """Carica le foto dal file,  creando un nuovo anno ogni volta che compare per la prima volta"""
     album = []
     f=open(file_path, "r")
     file=csv.reader(f)
