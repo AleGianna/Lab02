@@ -1,20 +1,31 @@
 import csv
 from csv import reader
+from operator import truediv
+
 
 def carica_da_file(file_path):
     """Carica le foto dal file,  creando un nuovo anno ogni volta che compare per la prima volta"""
-    album = []
+    list = []
     f=open(file_path, "r")
     file=csv.reader(f)
     inte = next(file)
+    anni = set()
     for row in file:
         diz={}
-        diz[inte[0]] = row[0]
-        diz[inte[1]] = row[1]
-        diz[inte[2]] = row[2]
-        diz[inte[3]] = int(row[3])
-        diz[inte[4]] = int(row[4])
-        album.append(diz)
+        diz[inte[0].strip()] = row[0]
+        diz[inte[1].strip()] = row[1]
+        diz[inte[1].strip()] = row[1]
+        diz[inte[2].strip()] = row[2]
+        diz[inte[3].strip()] = int(row[3])
+        diz[inte[4].strip()] = int(row[4])
+        anni.add(int(row[4]))
+        list.append(diz)
+    album ={}
+    for anno in anni:
+        album[anno] = []
+        for row in list:
+            if anno == int(row["anno"]):
+               album[anno].append(row)
     f.close()
     return album
 
@@ -31,22 +42,40 @@ def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
         inte1 [3] : mese,
         inte1 [4] : anno
     }
-    album.append(newPhoto)
     f_writer = open(file_path, mode="a", newline="")
     writer = csv.writer(f_writer)
     writer.writerow([codice, titolo, autore, mese, anno])
     f_writer.close()
+    t=False
+    for anni in album.keys():
+        if anno == anni:
+            t=True
+            album[anno].append(newPhoto)
+            break
+    if not t:
+        album[anno] = [newPhoto]
+        print(f"prima foto dell'anno {anno}")
+
     return True
 
 
 def cerca_foto(album, codice):
     """Cerca una foto nell'album dato il codice"""
-    # TODO
+    for dizAnni in album.values():
+        for row in dizAnni:
+            if row["codice"] == codice:
+                 risultato = row
+                 return risultato
 
+    return None
 
 def elenco_foto_anno_per_titolo(album, anno):
     """Ordina i titoli delle foto di un dato anno in ordine alfabetico"""
-    # TODO
+    titoli=[]
+    for row in album[int(anno)]:
+            titoli.append(row["titolo"])
+    titoli.sort()
+    return titoli
 
 
 def main():
@@ -68,6 +97,8 @@ def main():
                 file_path = input("Inserisci il path del file da caricare: ").strip()
                 album = carica_da_file(file_path)
                 if album is not None:
+                    print("album caricato!")
+                    print(album)
                     break
 
         elif scelta == "2":
