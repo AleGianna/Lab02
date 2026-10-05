@@ -5,59 +5,66 @@ from operator import truediv
 
 def carica_da_file(file_path):
     """Carica le foto dal file,  creando un nuovo anno ogni volta che compare per la prima volta"""
-    list = []
-    f=open(file_path, "r")
-    file=csv.reader(f)
-    inte = next(file)
-    anni = set()
-    for row in file:
-        diz={}
-        diz[inte[0].strip()] = row[0]
-        diz[inte[1].strip()] = row[1]
-        diz[inte[1].strip()] = row[1]
-        diz[inte[2].strip()] = row[2]
-        diz[inte[3].strip()] = int(row[3])
-        diz[inte[4].strip()] = int(row[4])
-        anni.add(int(row[4]))
-        list.append(diz)
-    album ={}
-    for anno in anni:
-        album[anno] = []
-        for row in list:
-            if anno == int(row["anno"]):
-               album[anno].append(row)
-    f.close()
-    return album
+    try:
+        list = []
+        f=open(file_path, "r")
+        file=csv.reader(f)
+        inte = next(file)
+        anni = set()
+        for row in file:
+            diz={}
+            diz[inte[0].strip()] = row[0]
+            diz[inte[1].strip()] = row[1]
+            diz[inte[2].strip()] = row[2]
+            diz[inte[3].strip()] = int(row[3])
+            diz[inte[4].strip()] = int(row[4])
+            anni.add(int(row[4]))
+            list.append(diz)
+        album ={}
+        for anno in anni:
+            album[anno] = []
+            for row in list:
+                if anno == int(row["anno"]):
+                   album[anno].append(row)
+        f.close()
+        return album
+    except FileNotFoundError:
+        return None
+
 
 def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
     """Aggiunge una foto all'album, creando l'anno al volo se non è ancora presente"""
-    # TODO
-    f=open(file_path, "r")
-    file=csv.reader(f)
-    inte1 = next(file)
+
+    if not (1 <= mese <= 12):
+        return None
+
+    for dizAnni in album.values():
+        for row in dizAnni:
+            if row["codice"] == codice:
+                return None
+
     newPhoto = {
-        inte1 [0] : codice,
-        inte1 [1] : titolo,
-        inte1 [2] : autore,
-        inte1 [3] : mese,
-        inte1 [4] : anno
+        "codice": codice,
+        "titolo": titolo,
+        "autore": autore,
+        "mese": mese,
+        "anno": anno
     }
-    f_writer = open(file_path, mode="a", newline="")
-    writer = csv.writer(f_writer)
-    writer.writerow([codice, titolo, autore, mese, anno])
-    f_writer.close()
-    t=False
-    for anni in album.keys():
-        if anno == anni:
-            t=True
-            album[anno].append(newPhoto)
-            break
-    if not t:
-        album[anno] = [newPhoto]
-        print(f"prima foto dell'anno {anno}")
 
-    return True
+    try:
+        with open(file_path, mode="a", newline="", encoding="utf-8") as f_writer:
+            writer = csv.writer(f_writer)
+            writer.writerow([codice, titolo, autore, mese, anno])
+    except FileNotFoundError:
+        return None
 
+    if anno not in album:
+        album[anno] = []
+        print(f"Prima foto dell'anno {anno}")
+
+    album[anno].append(newPhoto)
+
+    return newPhoto
 
 def cerca_foto(album, codice):
     """Cerca una foto nell'album dato il codice"""
@@ -65,13 +72,20 @@ def cerca_foto(album, codice):
         for row in dizAnni:
             if row["codice"] == codice:
                  risultato = row
-                 return risultato
+                 return f"{row['codice']}, {row['titolo']}, {row['autore']}, {row['mese']}, {row['anno']}"
 
     return None
 
 def elenco_foto_anno_per_titolo(album, anno):
     """Ordina i titoli delle foto di un dato anno in ordine alfabetico"""
     titoli=[]
+    s=False
+    for anni in album.keys():
+        if anno == anni:
+            s = True
+            break
+    if not s:
+        return None
     for row in album[int(anno)]:
             titoli.append(row["titolo"])
     titoli.sort()
@@ -98,8 +112,8 @@ def main():
                 album = carica_da_file(file_path)
                 if album is not None:
                     print("album caricato!")
-                    print(album)
                     break
+                print(f"file {file_path} non trovato")
 
         elif scelta == "2":
             if not album:
@@ -120,7 +134,10 @@ def main():
             if foto:
                 print(f"Foto aggiunta con successo!")
             else:
-                print("Non è stato possibile aggiungere la foto.")
+                if not 1<=mese<=12 :
+                   print("Il mese selezionato non esiste")
+                else:
+                    print("La foto è già presente nel album")
 
         elif scelta == "3":
             if not album:
